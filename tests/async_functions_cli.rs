@@ -21,6 +21,14 @@ fn discovers_mutants_in_async_functions_without_corrupting_syntax() {
     fs::write(
         &src,
         r#"
+pub struct AsyncHandler;
+
+impl AsyncHandler {
+    pub async fn handle_request(client: Address) {
+        client.require_auth();
+    }
+}
+
 pub async fn async_transfer(user: Address, recipient: Address) {
     user.require_auth();
 }
@@ -39,7 +47,7 @@ pub async fn async_check(admin: Address) {
     assert!(output.status.success());
     let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     let mutants = report["mutants"].as_array().unwrap();
-    assert_eq!(mutants.len(), 3);
+    assert_eq!(mutants.len(), 4);
     let observed: Vec<_> = mutants
         .iter()
         .map(|mutant| {
@@ -52,6 +60,7 @@ pub async fn async_check(admin: Address) {
     assert_eq!(
         observed,
         vec![
+            ("handle_request", "AUTH-001"),
             ("async_transfer", "AUTH-001"),
             ("async_transfer", "AUTH-002"),
             ("async_check", "AUTH-001"),

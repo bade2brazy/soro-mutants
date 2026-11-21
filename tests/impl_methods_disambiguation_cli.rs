@@ -52,6 +52,23 @@ impl TokenController {
     assert_ne!(mutants[0]["id"], mutants[1]["id"]);
     assert_ne!(mutants[0]["span"]["line"], mutants[1]["span"]["line"]);
 
+    // Leaf-name filtering matches both colliding implementations
+    let leaf_filtered = Command::new(env!("CARGO_BIN_EXE_cargo-soro-mutants"))
+        .args([
+            "list",
+            root.to_str().unwrap(),
+            "--function",
+            "process",
+            "--json",
+        ])
+        .output()
+        .expect("leaf-name function filter should run");
+    assert!(leaf_filtered.status.success());
+    let leaf_report: serde_json::Value = serde_json::from_slice(&leaf_filtered.stdout).unwrap();
+    let leaf_mutants = leaf_report["mutants"].as_array().unwrap();
+    assert_eq!(leaf_mutants.len(), 2);
+
+    // Qualified filter matches only the targeted implementation
     let filtered = Command::new(env!("CARGO_BIN_EXE_cargo-soro-mutants"))
         .args([
             "list",

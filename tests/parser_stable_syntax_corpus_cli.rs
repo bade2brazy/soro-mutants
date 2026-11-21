@@ -20,7 +20,7 @@ fn parser_corpus_handles_modern_stable_rust_syntax_without_panic() {
     let root = unique_project();
     let src = root.join("src/lib.rs");
     // Corpus exercising modern stable Rust syntax constructs:
-    // let-else, const blocks, raw identifiers, destructuring, type aliases, async, macro calls
+    // let-else, const blocks, raw identifiers, destructuring, type aliases, async, macro calls, match guards
     fs::write(
         &src,
         r#"
@@ -46,6 +46,12 @@ pub fn test_syntax_corpus(user: Address, opt: Option<u32>) {
 
     // const block expression
     let _ = const { 1 + 2 };
+
+    // match guard expression
+    match opt {
+        Some(x) if x > 0 => {},
+        _ => {},
+    }
 
     let _ = (r#type, a, b);
 }
